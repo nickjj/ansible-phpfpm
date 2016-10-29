@@ -1,4 +1,4 @@
-## What is ansible-phpfpm?
+## What is ansible-phpfpm? [![Build Status](https://secure.travis-ci.org/nickjj/ansible-phpfpm.png)](http://travis-ci.org/nickjj/ansible-phpfpm)
 
 It is an [Ansible](http://www.ansible.com/home) role to install and configure
 php-fpm.
