@@ -11,8 +11,8 @@ php-fpm.
 ### What problem does it solve and why is it useful?
 
 I'll be honest with you, I don't really use PHP but a project I'm working on
-requires it. This role fills the gap on being able to quickly get php-fpm
-running and configured as per your application's requirements.
+requires deploying an app made with it. This role fills the gap on being able
+to quickly get php-fpm running and configured as per your application's requirements.
 
 This role will not set up Apache. It is expected you proxy your application
 with nginx.
