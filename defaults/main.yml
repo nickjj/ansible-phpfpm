@@ -1,0 +1,54 @@
+---
+
+phpfpm_version: '7.0'
+
+phpfpm_default_support_packages:
+  - 'php7.0-curl'
+  - 'php7.0-mysql'
+
+phpfpm_support_packages: []
+
+phpfpm_php_ini_settings: ''
+
+phpfpm_fpm_config_error_log: '/var/log/php7.0-fpm.log'
+phpfpm_fpm_config_syslog_facility: 'daemon'
+phpfpm_fpm_config_syslog_ident: 'php-fpm'
+phpfpm_fpm_config_log_level: 'notice'
+phpfpm_fpm_config_emergency_restart_threshold: 0
+phpfpm_fpm_config_emergency_restart_interval: 0
+phpfpm_fpm_config_process_control_timeout: 0
+phpfpm_fpm_config_process_max: 0
+phpfpm_fpm_config_daemonize: 'yes'
+phpfpm_fpm_config_rlimit_files: 1024
+phpfpm_fpm_config_rlimit_core: 0
+phpfpm_fpm_config_events_mechanism: 'epoll'
+phpfpm_fpm_config_systemd_interval: 10
+
+phpfpm_fpm_pools: |
+  [www]
+  user = www-data
+  listen = /var/run/php7.0-fpm.sock
+  listen.owner = www-data
+  pm = dynamic
+  pm.max_children = 5
+  pm.start_servers = 2
+  pm.min_spare_servers = 1
+  pm.max_spare_servers = 3
+
+phpfpm_apt_keys:
+  Debian:
+    id: 'DF3D585DB8F0EB658690A554AC0E47584A7A714D'
+  Ubuntu:
+    id: '14AA40EC0831756756D7F66C4F4EA0AAE5267A6C'
+
+phpfpm_distribution: '{{ ansible_local.core.distribution
+                         if (ansible_local|d() and ansible_local.core|d() and
+                             ansible_local.core.distribution|d())
+                         else ansible_distribution }}'
+phpfpm_release: '{{ ansible_local.core.distribution_release
+                                 if (ansible_local|d() and ansible_local.core|d() and
+                                     ansible_local.core.distribution_release|d())
+                                 else ansible_distribution_release }}'
+phpfpm_repositories:
+  Debian: 'deb https://packages.sury.org/php/ {{ ansible_distribution_release }} main'
+  Ubuntu: 'ppa:ondrej/'

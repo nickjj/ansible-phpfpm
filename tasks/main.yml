@@ -1,0 +1,96 @@
+---
+
+- name: Install role dependencies
+  apt:
+    name: '{{ item }}'
+    state: 'present'
+    install_recommends: False
+  with_items: ['apt-transport-https']
+
+- name: Get upstream APT GPG key
+  apt_key:
+    id: '{{ phpfpm_apt_keys[phpfpm_distribution].id }}'
+    keyserver: '{{ ansible_local.core.keyserver
+                   if (ansible_local|d() and ansible_local.core|d() and
+                       ansible_local.core.keyserver)
+                   else "hkp://pool.sks-keyservers.net" }}'
+    state: 'present'
+
+- name: Configure upstream APT repository
+  apt_repository:
+    repo: '{{ phpfpm_repositories[phpfpm_distribution] }}'
+    state: 'present'
+    update_cache: True
+
+- name: Install PHP packages
+  apt:
+    name: '{{ item }}'
+    state: 'present'
+    update_cache: True
+  with_flattened:
+    - 'php{{ phpfpm_version }}-cli'
+    - 'php{{ phpfpm_version }}-fpm'
+    - '{{ phpfpm_default_support_packages }}'
+    - '{{ phpfpm_support_packages }}'
+
+- name: 'Create directory for the php*-fpm logs'
+  file:
+    path: '/var/log/php{{ phpfpm_version }}-fpm'
+    state: 'directory'
+    owner: 'root'
+    group: 'root'
+    mode: '0700'
+
+- name: Generate custom php.ini configuration
+  template:
+    src: 'etc/php/fpm/conf.d/ansible.ini.j2'
+    dest: '/etc/php/{{ phpfpm_version }}/fpm/conf.d/00-ansible.ini'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  notify:
+    - Restart php-fpm
+
+- name: Symlink custom php.ini from FPM to CLI
+  file:
+    src: '/etc/php/{{ phpfpm_version }}/fpm/conf.d/00-ansible.ini'
+    dest: '/etc/php/{{ phpfpm_version }}/cli/conf.d/00-ansible.ini'
+    state: 'link'
+
+- name: Check current php-fpm diversions
+  environment:
+    LC_ALL: 'C'
+  shell: dpkg-divert --list '/etc/php/{{ phpfpm_version }}/fpm/*' | awk '{print $NF}'
+  register: phpfpm_register_diversions
+  always_run: True
+  changed_when: False
+
+- name: Divert default php-fpm configuration and pool
+  command: dpkg-divert --quiet --local --divert {{ item + ".dpkg-divert" }}
+           --rename {{ item }}
+  with_items:
+    - '/etc/php/{{ phpfpm_version }}/fpm/php-fpm.conf'
+    - '/etc/php/{{ phpfpm_version }}/fpm/pool.d/www.conf'
+  when: 'item + ".dpkg-divert" not in phpfpm_register_diversions.stdout_lines'
+  notify:
+    - Restart php-fpm
+
+- name: Generate custom php-fpm configuration
+  template:
+    src: 'etc/php/fpm/php-fpm.conf.j2'
+    dest: '/etc/php/{{ phpfpm_version }}/fpm/php-fpm.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  notify: 
+    - Restart php-fpm
+
+- name: Generate custom php-fpm pool
+  template:
+    src: 'etc/php/fpm/pool.d/ansible.conf.j2'
+    dest: '/etc/php/{{ phpfpm_version }}/fpm/pool.d/ansible.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  notify: 
+    - Restart php-fpm
