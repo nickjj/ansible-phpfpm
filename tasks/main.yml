@@ -27,6 +27,7 @@
     name: '{{ item }}'
     state: 'present'
     update_cache: True
+    cache_valid_time: '{{ phpfpm_apt_cache_time }}'
   with_flattened:
     - 'php{{ phpfpm_version }}-cli'
     - 'php{{ phpfpm_version }}-fpm'

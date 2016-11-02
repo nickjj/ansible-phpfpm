@@ -90,6 +90,9 @@ phpfpm_release: '{{ ansible_local.core.distribution_release
 phpfpm_repositories:
   Debian: 'deb https://packages.sury.org/php/ {{ ansible_distribution_release }} main'
   Ubuntu: 'ppa:ondrej/'
+
+# How long should the apt-cache last in seconds?
+phpfpm_apt_cache_time: 86400
 ```
 
 ## Example playbook
