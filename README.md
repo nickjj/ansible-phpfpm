@@ -32,6 +32,7 @@ phpfpm_version: '7.0'
 phpfpm_default_support_packages:
   - 'php7.0-curl'
   - 'php7.0-mysql'
+  - 'php7.0-xml'
 
 # Additional PHP support packages that you may want to install.
 phpfpm_support_packages: []
